@@ -1,0 +1,16 @@
+{
+  "name": "yourglucochef",
+  "version": "1.0.0",
+  "scripts": {
+    "build": "mkdir -p public && cp -r api public/",
+    "start": "vercel dev"
+  },
+  "dependencies": {
+    "@vercel/node": "^4.0.0",
+    "axios": "^1.7.2",
+    "lru-cache": "^10.2.0"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
