@@ -1,6 +1,7 @@
 {
   "name": "yourglucochef",
   "version": "1.0.0",
+  "type": "module",
   "scripts": {
     "build": "mkdir -p public && cp -r api public/",
     "start": "vercel dev"
