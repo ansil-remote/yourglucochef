@@ -3,155 +3,161 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Generate diabetic-friendly recipes instantly using ingredients you already have - YourGlucoChef helps manage blood sugar through AI-powered meal planning">
-    <meta name="keywords" content="diabetic recipes, low GI meals, blood sugar management, diabetes diet, AI nutritionist">
-    <title>YourGlucoChef.com - AI Diabetic Recipe Generator</title>
+    <meta name="description" content="Generate diabetic-friendly recipes instantly using AI. Manage blood sugar with ingredients you already have!">
+    <title>YourGlucoChef - AI Diabetic Recipe Generator</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
         :root {
             --primary: #2c5f2d;
-            --secondary: #f0faf0;
+            --error: #dc3545;
         }
         body {
-            font-family: Arial, sans-serif;
+            font-family: system-ui, -apple-system, sans-serif;
             margin: 0;
             padding: 20px;
-            background: var(--secondary);
-            color: var(--primary);
+            background: #f8f9fa;
+            color: #212529;
         }
         .container {
             max-width: 800px;
             margin: 0 auto;
         }
-        .ad-banner {
-            height: 90px;
-            background: #fff;
-            margin: 20px 0;
-            border: 2px dashed var(--primary);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--primary);
+        .input-group {
+            margin: 2rem 0;
         }
-        #recipeResult {
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            margin-top: 20px;
+        input {
+            width: 100%;
+            padding: 1rem;
+            border: 2px solid var(--primary);
+            border-radius: 8px;
+            font-size: 1rem;
+            margin: 0.5rem 0;
         }
         button {
             background: var(--primary);
             color: white;
-            padding: 12px 24px;
+            padding: 1rem 2rem;
             border: none;
             border-radius: 8px;
             cursor: pointer;
             width: 100%;
-            font-size: 18px;
+            font-size: 1.1rem;
+            transition: opacity 0.2s;
         }
-        input {
-            width: 100%;
-            padding: 12px;
-            margin: 10px 0;
-            border: 2px solid var(--primary);
+        button:hover {
+            opacity: 0.9;
+        }
+        .recipe-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin: 2rem 0;
+        }
+        .error-message {
+            color: var(--error);
+            padding: 1rem;
+            border: 1px solid var(--error);
             border-radius: 8px;
-            font-size: 16px;
+            margin: 1rem 0;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <!-- Ad Placeholder Top -->
-        <div class="ad-banner">
-            [Google AdSense Leaderboard 728x90]
-        </div>
-
-        <h1 align="center">🍴🥗 YourGlucoChef.com</h1>
-        <p>Enter ingredients you have (e.g. "chicken, broccoli, garlic"):</p>
+        <h1>🍴 YourGlucoChef</h1>
+        <p>Enter ingredients separated by commas:</p>
         
-        <input type="text" id="ingredients" placeholder="Click here to enter ingredients you have. What's in your fridge? (e.g., chicken, spinach, garlic)">
-        <button onclick="generateRecipe()">
-            <i class="fas fa-magic"></i> Generate Diabetic-Friendly Recipe
-        </button>
+        <div class="input-group">
+            <input type="text" id="ingredients" 
+                   placeholder="Example: chicken, broccoli, garlic">
+            <button onclick="generateRecipe()">
+                <i class="fas fa-magic"></i> Generate Recipe
+            </button>
+        </div>
 
         <div id="recipeResult"></div>
-
-        <!-- Ad Placeholder Bottom -->
-        <div class="ad-banner">
-            [Google AdSense Medium Rectangle 300x250]
-        </div>
     </div>
-
-<footer align="center">
-            © 2025 YourGlucoChef.com • Built by ASI
-        </footer>
 
     <script>
         async function generateRecipe() {
-            const ingredients = document.getElementById('ingredients').value;
+            const ingredients = document.getElementById('ingredients').value.trim();
             const resultDiv = document.getElementById('recipeResult');
-            resultDiv.innerHTML = '<p>🧑🍳 AI Chef is cooking your recipe...</p>';
+            resultDiv.innerHTML = '<p>🧑🍳 Crafting your diabetic-friendly recipe...</p>';
 
             try {
+                if (!ingredients) {
+                    throw new Error('Please enter at least one ingredient');
+                }
+
                 const response = await fetch('/api/generate', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ ingredients })
                 });
 
-                if (!response.ok) throw new Error(await response.text());
+                const data = await response.json();
                 
-                const recipe = await response.json();
-                
-                // Build recipe HTML
+                if (!response.ok) {
+                    throw new Error(data.message || `Error: ${response.status}`);
+                }
+
+                // Build recipe display
                 let html = `
-                    <h2>${recipe.title}</h2>
-                    <div class="nutrition">
-                        <p>🥗 Carbs: ${recipe.nutrition.carbs} | GI: ${recipe.nutrition.gl} | Calories: ${recipe.nutrition.calories}</p>
+                    <div class="recipe-card">
+                        <h2>${data.title}</h2>
+                        <h3>Nutrition per serving:</h3>
+                        <ul>
+                            <li>Carbs: ${data.nutrition.carbs}</li>
+                            <li>Protein: ${data.nutrition.protein}</li>
+                            <li>Calories: ${data.nutrition.calories}</li>
+                            <li>Glycemic Index: ${data.nutrition.gi}</li>
+                        </ul>
+                        <h3>Ingredients:</h3>
+                        <ul>${data.ingredients.provided.map(i => `<li>${i}</li>`).join('')}</ul>
+                        ${data.ingredients.optional?.length ? `
+                        <h4>Suggested Additions:</h4>
+                        <ul>${data.ingredients.optional.map(i => `<li>${i}</li>`).join('')}</ul>
+                        ` : ''}
+                        <h3>Instructions:</h3>
+                        <ol>${data.instructions.map(s => `<li>${s}</li>`).join('')}</ol>
+                        ${data.tips ? `<div class="tips"><strong>Tip:</strong> ${data.tips}</div>` : ''}
+                        <button onclick="downloadRecipe()" style="margin-top:1.5rem;">
+                            <i class="fas fa-download"></i> Download Recipe
+                        </button>
                     </div>
-                    <h3>Ingredients:</h3>
-                    <ul>${recipe.ingredients.provided.map(i => `<li>${i}</li>`).join('')}</ul>
-                    ${recipe.ingredients.optional?.length ? `<h4>Optional Additions:</h4><ul>${recipe.ingredients.optional.map(i => `<li>${i}</li>`).join('')}</ul>` : ''}
-                    <h3>Instructions:</h3>
-                    <ol>${recipe.instructions.map(s => `<li>${s}</li>`).join('')}</ol>
-                    ${recipe.tips ? `<div class="tips">💡 ${recipe.tips}</div>` : ''}
-                    <button onclick="generatePDF()" style="margin-top:20px;">
-                        <i class="fas fa-download"></i> Download Recipe PDF
-                    </button>
                 `;
 
                 resultDiv.innerHTML = html;
 
             } catch (error) {
-                resultDiv.innerHTML = `<p style="color:#ff4444">⚠️ Error: ${error.message}</p>`;
+                resultDiv.innerHTML = `
+                    <div class="error-message">
+                        <strong>⚠️ Error:</strong> ${error.message}
+                        ${error.code ? `<br><small>Error code: ${error.code}</small>` : ''}
+                    </div>
+                `;
+                console.error('API Error Details:', error);
             }
         }
 
-        function generatePDF() {
+        function downloadRecipe() {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
             
             doc.setFontSize(18);
-            doc.text(document.querySelector('#recipeResult h2').textContent, 10, 20);
-            
-            doc.setFontSize(12);
-            let yPos = 30;
+            doc.text(document.querySelector('.recipe-card h2').textContent, 10, 20);
             
             // Add nutrition info
-            doc.text(`Nutrition: ${document.querySelector('.nutrition p').textContent}`, 10, yPos);
-            yPos += 10;
-            
-            // Add ingredients
-            doc.text('Ingredients:', 10, yPos);
-            yPos += 7;
-            document.querySelectorAll('#recipeResult ul')[0].querySelectorAll('li').forEach(li => {
+            doc.setFontSize(12);
+            doc.text('Nutrition Information:', 10, 30);
+            let yPos = 40;
+            document.querySelectorAll('.recipe-card ul')[0].querySelectorAll('li').forEach(li => {
                 doc.text(`- ${li.textContent}`, 15, yPos);
-                yPos += 7;
+                yPos += 10;
             });
             
-            // Save PDF
             doc.save('glucochef-recipe.pdf');
         }
     </script>
