@@ -8,7 +8,7 @@
   },
   "dependencies": {
     "@vercel/node": "^4.0.0",
-    "axios": "^1.6.0", // Correct version
+    "axios": "^1.6.0", 
     "lru-cache": "^10.2.0"
   },
   "engines": {
