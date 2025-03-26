@@ -1,21 +1,17 @@
 import { createRequire } from 'node:module';
 import axios from 'axios';
 import process from 'node:process';
-
-// Modern ES Module-compatible LRU Cache
 import { LRUCache } from 'lru-cache';
 
 const require = createRequire(import.meta.url);
 
-// Initialize rate limiter with proper ES Module syntax
 const rateLimitCache = new LRUCache({
   max: 500,
-  ttl: 60_000 // 1 minute in milliseconds
+  ttl: 60_000
 });
 
 export default async (req, res) => {
   try {
-    // Method validation
     if (req.method !== 'POST') {
       return res.status(405).json({
         error: 'Method Not Allowed',
@@ -23,7 +19,6 @@ export default async (req, res) => {
       });
     }
 
-    // Rate limiting
     const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
     const current = rateLimitCache.get(ip) || 0;
     
@@ -35,7 +30,6 @@ export default async (req, res) => {
     }
     rateLimitCache.set(ip, current + 1);
 
-    // Parse request body
     let body;
     try {
       body = await req.json();
@@ -46,7 +40,6 @@ export default async (req, res) => {
       });
     }
 
-    // Validate ingredients
     if (!body?.ingredients?.trim()) {
       return res.status(400).json({
         error: 'Missing Ingredients',
@@ -54,7 +47,6 @@ export default async (req, res) => {
       });
     }
 
-    // Verify OpenAI key
     if (!process.env.OPENAI_API_KEY) {
       console.error('Missing OpenAI API Key');
       return res.status(500).json({
@@ -63,12 +55,11 @@ export default async (req, res) => {
       });
     }
 
-    // Generate recipe
     const prompt = `Create diabetic-friendly recipe with: ${body.ingredients}. 
     Requirements:
     - GI < 50
     - GL < 10
-    - JSON format with title, ingredients, instructions, nutrition (carbs, protein, fat, calories, gi, gl)
+    - JSON format with title, ingredients (array), instructions (array), nutrition (carbs, protein, fat, calories, gi, gl)
     - Fun creative name`;
 
     const response = await axios.post(
@@ -88,7 +79,6 @@ export default async (req, res) => {
       }
     );
 
-    // Validate response
     const content = response.data.choices[0]?.message?.content;
     if (!content) throw new Error('Empty AI response');
 
