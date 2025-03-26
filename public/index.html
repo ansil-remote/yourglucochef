@@ -5,29 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>YourGlucoChef - AI Diabetes Recipe Generator</title>
     <style>
-        :root {
-            --primary: #2c5f2d;
-            --error: #dc3545;
-        }
-        body {
-            font-family: system-ui, sans-serif;
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 2rem;
-        }
-        #recipeResult {
-            margin-top: 2rem;
-            padding: 1.5rem;
-            border-radius: 8px;
-            background: white;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        }
-        .error {
-            color: var(--error);
-            padding: 1rem;
-            border: 1px solid var(--error);
-            border-radius: 8px;
-        }
+        :root { --primary: #2c5f2d; --error: #dc3545; }
+        body { font-family: system-ui, sans-serif; max-width: 800px; margin: 0 auto; padding: 2rem; }
+        #recipeResult { margin-top: 2rem; padding: 1.5rem; border-radius: 8px; background: white; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .error { color: var(--error); padding: 1rem; border: 1px solid var(--error); border-radius: 8px; }
     </style>
 </head>
 <body>
@@ -49,18 +30,18 @@
                     body: JSON.stringify({ ingredients })
                 });
 
-                const data = await response.json().catch(() => {
-                    throw new Error('Invalid server response');
-                });
-
                 if (!response.ok) {
-                    throw new Error(data.message || `Error: ${response.status}`);
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || `HTTP Error: ${response.status}`);
                 }
 
+                const data = await response.json();
+
+                // Simplified display logic
                 resultDiv.innerHTML = `
                     <h2>${data.title}</h2>
                     <h3>Ingredients:</h3>
-                    <ul>${data.ingredients.provided.map(i => `<li>${i}</li>`).join('')}</ul>
+                    <ul>${data.ingredients.map(i => `<li>${i}</li>`).join('')}</ul>
                     <h3>Instructions:</h3>
                     <ol>${data.instructions.map(s => `<li>${s}</li>`).join('')}</ol>
                 `;
